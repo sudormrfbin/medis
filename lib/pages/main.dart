@@ -21,6 +21,32 @@ String dayIntToString(int day) {
   throw 'Invalid date int';
 }
 
+class Slot {
+  final int id;
+  final String name;
+
+  Slot(this.id, this.name);
+}
+
+class Schedule {
+  final int slotId;
+  final TimeOfDay time;
+
+  Schedule(this.slotId, this.time);
+}
+
+final slots = [
+  Slot(1, 'Anthrazene'),
+  Slot(2, 'Betadine'),
+  Slot(3, 'Dolo'),
+  Slot(4, 'Insulin'),
+];
+
+final schedules = [
+  Schedule(1, const TimeOfDay(hour: 9, minute: 0)),
+  Schedule(2, const TimeOfDay(hour: 19, minute: 0)),
+];
+
 class MainPage extends StatelessWidget {
   const MainPage({super.key});
 
@@ -28,27 +54,23 @@ class MainPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Row(children: [
-        buildPillCard(context, 'Anthrazene', 1),
-        buildPillCard(context, 'Betadine', 2),
+        buildPillCard(context, slots[0]),
+        buildPillCard(context, slots[1]),
       ]),
       Row(children: [
-        buildPillCard(context, 'Dolo', 3),
-        buildPillCard(context, 'Insulin', 4),
+        buildPillCard(context, slots[2]),
+        buildPillCard(context, slots[3]),
       ]),
       const SizedBox(height: 20),
-      buildScheduleTile(
-          context, const TimeOfDay(hour: 9, minute: 0), [1, 3, 5], 'Insulin'),
-      buildScheduleTile(
-          context, const TimeOfDay(hour: 19, minute: 0), [6, 7], 'Dolo'),
+      for (final schedule in schedules) buildScheduleTile(context, schedule),
     ]);
   }
 
   Widget buildScheduleTile(
     BuildContext context,
-    TimeOfDay time,
-    List<int> days,
-    String pillName,
+    Schedule schedule,
   ) {
+    final pillName = slots[schedule.slotId].name;
     return Card(
       elevation: 0,
       color: Theme.of(context).colorScheme.surfaceVariant,
@@ -56,25 +78,22 @@ class MainPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(
-                textBaseline: TextBaseline.alphabetic,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                children: [
-                  Text(
-                    '${time.hourOfPeriod.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
-                    // time.format(context),
-                    // '09:00',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  Text(
-                    time.period == DayPeriod.am ? ' AM' : ' PM',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
-              ),
-              Text(days.map(dayIntToString).join(", ")),
-            ]),
+            Row(
+              textBaseline: TextBaseline.alphabetic,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              children: [
+                Text(
+                  '${schedule.time.hourOfPeriod.toString().padLeft(2, '0')}:${schedule.time.minute.toString().padLeft(2, '0')}',
+                  // time.format(context),
+                  // '09:00',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                Text(
+                  schedule.time.period == DayPeriod.am ? ' AM' : ' PM',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
+            ),
             const Spacer(),
             Text(pillName, style: Theme.of(context).textTheme.bodyLarge)
           ],
@@ -83,12 +102,12 @@ class MainPage extends StatelessWidget {
     );
   }
 
-  Widget buildPillCard(BuildContext context, String name, int slot) {
+  Widget buildPillCard(BuildContext context, Slot slot) {
     return Expanded(
       child: buildCard(
         context,
-        title: name,
-        subtitle: 'Slot ${slot.toString()}',
+        title: slot.name,
+        subtitle: 'Slot ${slot.id.toString()}',
       ),
     );
   }
