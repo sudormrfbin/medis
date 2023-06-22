@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:medis/util.dart';
+
+import '../database.dart';
 
 String dayIntToString(int day) {
   switch (day) {
@@ -21,20 +25,6 @@ String dayIntToString(int day) {
   throw 'Invalid date int';
 }
 
-class Slot {
-  final int id;
-  final String name;
-
-  Slot(this.id, this.name);
-}
-
-class Schedule {
-  final int slotId;
-  final TimeOfDay time;
-
-  Schedule(this.slotId, this.time);
-}
-
 final slots = [
   Slot(1, 'Anthrazene'),
   Slot(2, 'Betadine'),
@@ -47,23 +37,29 @@ final schedules = [
   Schedule(2, const TimeOfDay(hour: 19, minute: 0)),
 ];
 
-class MainPage extends StatelessWidget {
+class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
   @override
+  ConsumerState<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends ConsumerState<MainPage> {
+  @override
   Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Row(children: [
-        buildPillCard(context, slots[0]),
-        buildPillCard(context, slots[1]),
-      ]),
-      Row(children: [
-        buildPillCard(context, slots[2]),
-        buildPillCard(context, slots[3]),
-      ]),
-      const SizedBox(height: 20),
-      for (final schedule in schedules) buildScheduleTile(context, schedule),
-    ]);
+    final slots = ref.watch(slotsProvider);
+    return slots.when(error: (error, stack) {
+      return Center(child: Text(error.toString()));
+    }, loading: () {
+      return const Center(child: CircularProgressIndicator());
+    }, data: (slots) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (int i = 0; i <= 2; i++)
+          buildPillCard(context, slots.get(i), i + 1),
+        const SizedBox(height: 20),
+        for (final schedule in schedules) buildScheduleTile(context, schedule),
+      ]);
+    });
   }
 
   Widget buildScheduleTile(
@@ -102,13 +98,11 @@ class MainPage extends StatelessWidget {
     );
   }
 
-  Widget buildPillCard(BuildContext context, Slot slot) {
-    return Expanded(
-      child: buildCard(
-        context,
-        title: slot.name,
-        subtitle: 'Slot ${slot.id.toString()}',
-      ),
+  Widget buildPillCard(BuildContext context, Slot? slot, int id) {
+    return buildCard(
+      context,
+      title: slot?.name ?? 'Unassigned',
+      subtitle: 'Slot $id',
     );
   }
 
@@ -122,10 +116,10 @@ class MainPage extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       child: Padding(
         padding: const EdgeInsets.all(16.0).copyWith(left: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Row(
           children: [
             Text(title, style: theme.textTheme.titleSmall),
+            const Spacer(),
             Text(
               subtitle,
               style: TextStyle(color: theme.disabledColor),
