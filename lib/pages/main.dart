@@ -54,9 +54,11 @@ class _MainPageState extends ConsumerState<MainPage> {
       return const Center(child: CircularProgressIndicator());
     }, data: (slots) {
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        for (int i = 0; i <= 2; i++)
-          buildPillCard(context, slots.get(i), i + 1),
-        const SizedBox(height: 20),
+        for (int i = 0; i <= 2; i++) SlotCard(slot: slots.get(i), id: i + 1),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: const Text('Schedules'),
+        ),
         for (final schedule in schedules) buildScheduleTile(context, schedule),
       ]);
     });
@@ -97,8 +99,15 @@ class _MainPageState extends ConsumerState<MainPage> {
       ),
     );
   }
+}
 
-  Widget buildPillCard(BuildContext context, Slot? slot, int id) {
+class SlotCard extends StatelessWidget {
+  final Slot? slot;
+  final int id;
+  const SlotCard({super.key, this.slot, required this.id});
+
+  @override
+  Widget build(BuildContext context) {
     return buildCard(
       context,
       title: slot?.name ?? 'Unassigned',
