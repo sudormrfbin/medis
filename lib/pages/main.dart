@@ -139,19 +139,25 @@ class SlotCard extends StatelessWidget {
     required String subtitle,
   }) {
     var theme = Theme.of(context);
+    final radius = BorderRadius.circular(30);
+
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0).copyWith(left: 24),
-        child: Row(
-          children: [
-            Text(title, style: theme.textTheme.titleSmall),
-            const Spacer(),
-            Text(
-              subtitle,
-              style: TextStyle(color: theme.disabledColor),
-            )
-          ],
+      shape: RoundedRectangleBorder(borderRadius: radius),
+      child: InkWell(
+        borderRadius: radius,
+        onTap: () {},
+        child: Padding(
+          padding: const EdgeInsets.all(16.0).copyWith(left: 24),
+          child: Row(
+            children: [
+              Text(title, style: theme.textTheme.titleSmall),
+              const Spacer(),
+              Text(
+                subtitle,
+                style: TextStyle(color: theme.disabledColor),
+              )
+            ],
+          ),
         ),
       ),
     );
