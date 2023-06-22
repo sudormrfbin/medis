@@ -46,7 +46,7 @@ class Slot {
 class Schedule {
   @PrimaryKey(autoGenerate: true)
   int? id;
-  final int slotId;
+  final int? slotId;
   final TimeOfDay time;
 
   Schedule(this.slotId, this.time);

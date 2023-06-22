@@ -89,7 +89,7 @@ class _$MedisDatabase extends MedisDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Slot` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Schedule` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `slotId` INTEGER NOT NULL, `time` INTEGER NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `Schedule` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `slotId` INTEGER, `time` INTEGER NOT NULL)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -189,7 +189,7 @@ class _$ScheduleDao extends ScheduleDao {
   @override
   Stream<List<Schedule>> getAllSchedules() {
     return _queryAdapter.queryListStream('SELECT * FROM Schedule',
-        mapper: (Map<String, Object?> row) => Schedule(row['slotId'] as int,
+        mapper: (Map<String, Object?> row) => Schedule(row['slotId'] as int?,
             _timeOfDayConverter.decode(row['time'] as int)),
         queryableName: 'Schedule',
         isView: false);
@@ -198,7 +198,7 @@ class _$ScheduleDao extends ScheduleDao {
   @override
   Future<Schedule?> getScheduleById(int id) async {
     return _queryAdapter.query('SELECT * FROM Schedule WHERE id = ?1',
-        mapper: (Map<String, Object?> row) => Schedule(row['slotId'] as int,
+        mapper: (Map<String, Object?> row) => Schedule(row['slotId'] as int?,
             _timeOfDayConverter.decode(row['time'] as int)),
         arguments: [id]);
   }

@@ -86,7 +86,8 @@ class _MainPageState extends ConsumerState<MainPage> {
     BuildContext context,
     Schedule schedule,
   ) {
-    final pillName = slots[schedule.slotId].name;
+    final pillName =
+        schedule.slotId != null ? slots[schedule.slotId!].name : 'Unassigned';
     return Card(
       elevation: 0,
       color: Theme.of(context).colorScheme.surfaceVariant,
@@ -94,27 +95,40 @@ class _MainPageState extends ConsumerState<MainPage> {
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            Row(
-              textBaseline: TextBaseline.alphabetic,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              children: [
-                Text(
-                  '${schedule.time.hourOfPeriod.toString().padLeft(2, '0')}:${schedule.time.minute.toString().padLeft(2, '0')}',
-                  // time.format(context),
-                  // '09:00',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                Text(
-                  schedule.time.period == DayPeriod.am ? ' AM' : ' PM',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-              ],
-            ),
+            TimeDisplay(time: schedule.time),
             const Spacer(),
             Text(pillName, style: Theme.of(context).textTheme.bodyLarge)
           ],
         ),
       ),
+    );
+  }
+}
+
+class TimeDisplay extends StatelessWidget {
+  final TimeOfDay time;
+  const TimeDisplay({
+    super.key,
+    required this.time,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      textBaseline: TextBaseline.alphabetic,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      children: [
+        Text(
+          '${time.hourOfPeriod.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
+          // time.format(context),
+          // '09:00',
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        Text(
+          time.period == DayPeriod.am ? ' AM' : ' PM',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+      ],
     );
   }
 }
