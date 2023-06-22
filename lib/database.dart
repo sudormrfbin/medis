@@ -6,7 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 part 'database.g.dart';
 
-final databaseProvider = Provider<MedisDatabase>((ref) => throw UnimplementedError());
+final databaseProvider =
+    Provider<MedisDatabase>((ref) => throw UnimplementedError());
 
 StreamProvider<List<Slot>> slotsProvider = StreamProvider((ref) {
   final database = ref.watch(databaseProvider);
@@ -34,8 +35,8 @@ class TimeOfDayConverter extends TypeConverter<TimeOfDay, int> {
 
 @entity
 class Slot {
-  @primaryKey
-  final int id;
+  @PrimaryKey(autoGenerate: true)
+  int? id;
   final String name;
 
   Slot(this.id, this.name);

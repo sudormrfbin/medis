@@ -119,17 +119,19 @@ class _MainPageState extends ConsumerState<MainPage> {
   }
 }
 
-class SlotCard extends StatelessWidget {
+class SlotCard extends ConsumerWidget {
   final Slot? slot;
   final int id;
+
   const SlotCard({super.key, this.slot, required this.id});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return buildCard(
       context,
       title: slot?.name ?? 'Unassigned',
       subtitle: 'Slot $id',
+      ref: ref,
     );
   }
 
@@ -137,6 +139,7 @@ class SlotCard extends StatelessWidget {
     BuildContext context, {
     required String title,
     required String subtitle,
+    required WidgetRef ref,
   }) {
     var theme = Theme.of(context);
     final radius = BorderRadius.circular(30);
@@ -145,7 +148,23 @@ class SlotCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: radius),
       child: InkWell(
         borderRadius: radius,
-        onTap: () {},
+        onTap: () async {
+          final controller = TextEditingController()..text = slot?.name ?? '';
+          final name = await showDialog<String>(
+            context: context,
+            builder: (context) => SlotEditDialog(slotName: slot?.name),
+          );
+          controller.dispose();
+          if (name == null || name == '') return;
+
+          final updatedSlot = Slot(slot?.id, name);
+          final slotDao = ref.read(databaseProvider).slotDao;
+          if (slot == null) {
+            await slotDao.insertSlot(updatedSlot);
+          } else {
+            await slotDao.updateSlot(updatedSlot);
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.all(16.0).copyWith(left: 24),
           child: Row(
@@ -160,6 +179,59 @@ class SlotCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class SlotEditDialog extends StatefulWidget {
+  final String? slotName;
+
+  const SlotEditDialog({super.key, this.slotName});
+
+  @override
+  State<SlotEditDialog> createState() => _SlotEditDialogState();
+}
+
+class _SlotEditDialogState extends State<SlotEditDialog> {
+  late TextEditingController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = TextEditingController()..text = widget.slotName ?? '';
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Edit Slot'),
+      content: TextField(
+        autofocus: true,
+        controller: controller,
+        decoration: const InputDecoration(
+          hintText: 'Name of medicine',
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: const Text('Cancel'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        TextButton(
+          child: const Text('OK'),
+          onPressed: () {
+            Navigator.of(context).pop(controller.text);
+          },
+        ),
+      ],
     );
   }
 }

@@ -87,7 +87,7 @@ class _$MedisDatabase extends MedisDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Slot` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `Slot` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Schedule` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `slotId` INTEGER NOT NULL, `time` INTEGER NOT NULL)');
 
@@ -139,7 +139,7 @@ class _$SlotDao extends SlotDao {
   Stream<List<Slot>> getAllSlots() {
     return _queryAdapter.queryListStream('SELECT * FROM Slot',
         mapper: (Map<String, Object?> row) =>
-            Slot(row['id'] as int, row['name'] as String),
+            Slot(row['id'] as int?, row['name'] as String),
         queryableName: 'Slot',
         isView: false);
   }
@@ -148,7 +148,7 @@ class _$SlotDao extends SlotDao {
   Future<Slot?> getSlotById(int id) async {
     return _queryAdapter.query('SELECT * FROM Slot WHERE id = ?1',
         mapper: (Map<String, Object?> row) =>
-            Slot(row['id'] as int, row['name'] as String),
+            Slot(row['id'] as int?, row['name'] as String),
         arguments: [id]);
   }
 
