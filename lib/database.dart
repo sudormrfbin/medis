@@ -3,6 +3,7 @@ import 'package:floor/floor.dart';
 import 'dart:async';
 import 'package:sqflite/sqflite.dart' as sqflite;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'database.g.dart';
 
@@ -18,6 +19,12 @@ StreamProvider<List<Schedule>> schedulesProvider = StreamProvider((ref) {
   final database = ref.watch(databaseProvider);
   return database.scheduleDao.getAllSchedules();
 });
+
+@riverpod
+Future<Slot?> slotsById(SlotsByIdRef ref, int id) async {
+  final database = ref.watch(databaseProvider);
+  return database.slotDao.getSlotById(id);
+}
 
 class TimeOfDayConverter extends TypeConverter<TimeOfDay, int> {
   @override
@@ -49,7 +56,7 @@ class Schedule {
   final int? slotId;
   final TimeOfDay time;
 
-  Schedule(this.slotId, this.time);
+  Schedule(this.slotId, this.time, {this.id});
 }
 
 @TypeConverters([TimeOfDayConverter])
@@ -84,4 +91,7 @@ abstract class ScheduleDao {
 
   @insert
   Future<void> insertSchedule(Schedule schedule);
+
+  @update
+  Future<void> updateSchedule(Schedule schedule);
 }

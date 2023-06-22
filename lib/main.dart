@@ -16,11 +16,11 @@ void main() async {
   ));
 }
 
-class MedisApp extends StatelessWidget {
+class MedisApp extends ConsumerWidget {
   const MedisApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       title: 'Palm',
       theme: ThemeData(useMaterial3: true),
@@ -37,9 +37,13 @@ class MedisApp extends StatelessWidget {
                 context: context,
                 initialTime: TimeOfDay.now(),
               );
-              if (time != null) {
-                schedules.add(Schedule(1, time));
-              }
+              if (time == null) return;
+
+              final newSchedule = Schedule(null, time);
+              await ref
+                  .read(databaseProvider)
+                  .scheduleDao
+                  .insertSchedule(newSchedule);
             },
             icon: const Icon(Icons.add),
           );

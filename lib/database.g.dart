@@ -176,6 +176,16 @@ class _$ScheduleDao extends ScheduleDao {
                   'slotId': item.slotId,
                   'time': _timeOfDayConverter.encode(item.time)
                 },
+            changeListener),
+        _scheduleUpdateAdapter = UpdateAdapter(
+            database,
+            'Schedule',
+            ['id'],
+            (Schedule item) => <String, Object?>{
+                  'id': item.id,
+                  'slotId': item.slotId,
+                  'time': _timeOfDayConverter.encode(item.time)
+                },
             changeListener);
 
   final sqflite.DatabaseExecutor database;
@@ -186,11 +196,14 @@ class _$ScheduleDao extends ScheduleDao {
 
   final InsertionAdapter<Schedule> _scheduleInsertionAdapter;
 
+  final UpdateAdapter<Schedule> _scheduleUpdateAdapter;
+
   @override
   Stream<List<Schedule>> getAllSchedules() {
     return _queryAdapter.queryListStream('SELECT * FROM Schedule',
         mapper: (Map<String, Object?> row) => Schedule(row['slotId'] as int?,
-            _timeOfDayConverter.decode(row['time'] as int)),
+            _timeOfDayConverter.decode(row['time'] as int),
+            id: row['id'] as int?),
         queryableName: 'Schedule',
         isView: false);
   }
@@ -199,7 +212,8 @@ class _$ScheduleDao extends ScheduleDao {
   Future<Schedule?> getScheduleById(int id) async {
     return _queryAdapter.query('SELECT * FROM Schedule WHERE id = ?1',
         mapper: (Map<String, Object?> row) => Schedule(row['slotId'] as int?,
-            _timeOfDayConverter.decode(row['time'] as int)),
+            _timeOfDayConverter.decode(row['time'] as int),
+            id: row['id'] as int?),
         arguments: [id]);
   }
 
@@ -207,7 +221,120 @@ class _$ScheduleDao extends ScheduleDao {
   Future<void> insertSchedule(Schedule schedule) async {
     await _scheduleInsertionAdapter.insert(schedule, OnConflictStrategy.abort);
   }
+
+  @override
+  Future<void> updateSchedule(Schedule schedule) async {
+    await _scheduleUpdateAdapter.update(schedule, OnConflictStrategy.abort);
+  }
 }
 
 // ignore_for_file: unused_element
 final _timeOfDayConverter = TimeOfDayConverter();
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+String _$slotsByIdHash() => r'23e8767bb09e9bd634d6c724bf230840e83a6589';
+
+/// Copied from Dart SDK
+class _SystemHash {
+  _SystemHash._();
+
+  static int combine(int hash, int value) {
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + value);
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+    return hash ^ (hash >> 6);
+  }
+
+  static int finish(int hash) {
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+    // ignore: parameter_assignments
+    hash = hash ^ (hash >> 11);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  }
+}
+
+typedef SlotsByIdRef = AutoDisposeFutureProviderRef<Slot?>;
+
+/// See also [slotsById].
+@ProviderFor(slotsById)
+const slotsByIdProvider = SlotsByIdFamily();
+
+/// See also [slotsById].
+class SlotsByIdFamily extends Family<AsyncValue<Slot?>> {
+  /// See also [slotsById].
+  const SlotsByIdFamily();
+
+  /// See also [slotsById].
+  SlotsByIdProvider call(
+    int id,
+  ) {
+    return SlotsByIdProvider(
+      id,
+    );
+  }
+
+  @override
+  SlotsByIdProvider getProviderOverride(
+    covariant SlotsByIdProvider provider,
+  ) {
+    return call(
+      provider.id,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'slotsByIdProvider';
+}
+
+/// See also [slotsById].
+class SlotsByIdProvider extends AutoDisposeFutureProvider<Slot?> {
+  /// See also [slotsById].
+  SlotsByIdProvider(
+    this.id,
+  ) : super.internal(
+          (ref) => slotsById(
+            ref,
+            id,
+          ),
+          from: slotsByIdProvider,
+          name: r'slotsByIdProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$slotsByIdHash,
+          dependencies: SlotsByIdFamily._dependencies,
+          allTransitiveDependencies: SlotsByIdFamily._allTransitiveDependencies,
+        );
+
+  final int id;
+
+  @override
+  bool operator ==(Object other) {
+    return other is SlotsByIdProvider && other.id == id;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, id.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+// ignore_for_file: unnecessary_raw_strings, subtype_of_sealed_class, invalid_use_of_internal_member, do_not_use_environment, prefer_const_constructors, public_member_api_docs, avoid_private_typedef_functions

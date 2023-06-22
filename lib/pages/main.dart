@@ -25,18 +25,6 @@ String dayIntToString(int day) {
   throw 'Invalid date int';
 }
 
-final slots = [
-  Slot(1, 'Anthrazene'),
-  Slot(2, 'Betadine'),
-  Slot(3, 'Dolo'),
-  Slot(4, 'Insulin'),
-];
-
-final schedules = [
-  Schedule(1, const TimeOfDay(hour: 9, minute: 0)),
-  Schedule(2, const TimeOfDay(hour: 19, minute: 0)),
-];
-
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
@@ -61,41 +49,109 @@ class Heading extends StatelessWidget {
 }
 
 class _MainPageState extends ConsumerState<MainPage> {
-  @override
-  Widget build(BuildContext context) {
+  Widget buildSlots() {
     final slots = ref.watch(slotsProvider);
-    return slots.when(error: (error, stack) {
-      return Center(child: Text(error.toString()));
-    }, loading: () {
-      return const Center(child: CircularProgressIndicator());
-    }, data: (slots) {
-      return SingleChildScrollView(
-        child:
-            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Heading('Slots'),
-          for (int i = 0; i <= 2; i++) SlotCard(slot: slots.get(i), id: i + 1),
-          const Heading('Schedules'),
-          for (final schedule in schedules)
-            buildScheduleTile(context, schedule),
-        ]),
-      );
-    });
+    return slots.when(
+      error: (error, stack) {
+        return Center(child: Text(error.toString()));
+      },
+      loading: () {
+        return const Center(child: CircularProgressIndicator());
+      },
+      data: (slots) {
+        return Column(
+          children: [
+            for (int i = 0; i <= 2; i++)
+              SlotCard(slot: slots.get(i), id: i + 1),
+          ],
+        );
+      },
+    );
   }
 
-  Widget buildScheduleTile(
-    BuildContext context,
-    Schedule schedule,
-  ) {
-    final pillName =
-        schedule.slotId != null ? slots[schedule.slotId!].name : 'Unassigned';
+  Widget buildSchedules() {
+    final schedules = ref.watch(schedulesProvider);
+    return schedules.when(
+      error: (error, stack) {
+        return Center(child: Text(error.toString()));
+      },
+      loading: () {
+        return const Center(child: CircularProgressIndicator());
+      },
+      data: (schedules) {
+        return Column(
+          children: [
+            for (final schedule in schedules) ScheduleTile(schedule: schedule),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const Heading('Slots'),
+        buildSlots(),
+        const Heading('Schedules'),
+        buildSchedules(),
+      ]),
+    );
+  }
+}
+
+class ScheduleTile extends ConsumerWidget {
+  const ScheduleTile({
+    super.key,
+    required this.schedule,
+  });
+
+  final Schedule schedule;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    var pillName = 'Unassigned';
+    if (schedule.slotId != null) {
+      final slot = ref.watch(slotsByIdProvider(schedule.slotId!));
+      pillName = slot.when(
+        error: (_, __) => 'Error',
+        loading: () => 'Loading',
+        data: (data) => data?.name ?? pillName,
+      );
+    }
+
     return Card(
       elevation: 0,
       color: Theme.of(context).colorScheme.surfaceVariant,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10.0),
         child: Row(
           children: [
-            TimeDisplay(time: schedule.time),
+            InkWell(
+              onTap: () async {
+                final time = await showTimePicker(
+                  context: context,
+                  initialTime: schedule.time,
+                );
+                if (time == null) return;
+
+                final updatedSchedule = Schedule(
+                  schedule.slotId,
+                  time,
+                  id: schedule.id,
+                );
+                await ref
+                    .read(databaseProvider)
+                    .scheduleDao
+                    .updateSchedule(updatedSchedule);
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: TimeDisplay(time: schedule.time),
+              ),
+            ),
             const Spacer(),
             Text(pillName, style: Theme.of(context).textTheme.bodyLarge)
           ],
