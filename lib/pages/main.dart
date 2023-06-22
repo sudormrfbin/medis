@@ -44,6 +44,22 @@ class MainPage extends ConsumerStatefulWidget {
   ConsumerState<MainPage> createState() => _MainPageState();
 }
 
+class Heading extends StatelessWidget {
+  final String text;
+  const Heading(this.text, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.headlineMedium,
+      ),
+    );
+  }
+}
+
 class _MainPageState extends ConsumerState<MainPage> {
   @override
   Widget build(BuildContext context) {
@@ -53,14 +69,16 @@ class _MainPageState extends ConsumerState<MainPage> {
     }, loading: () {
       return const Center(child: CircularProgressIndicator());
     }, data: (slots) {
-      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        for (int i = 0; i <= 2; i++) SlotCard(slot: slots.get(i), id: i + 1),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: const Text('Schedules'),
-        ),
-        for (final schedule in schedules) buildScheduleTile(context, schedule),
-      ]);
+      return SingleChildScrollView(
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const Heading('Slots'),
+          for (int i = 0; i <= 2; i++) SlotCard(slot: slots.get(i), id: i + 1),
+          const Heading('Schedules'),
+          for (final schedule in schedules)
+            buildScheduleTile(context, schedule),
+        ]),
+      );
     });
   }
 

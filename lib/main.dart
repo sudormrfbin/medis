@@ -44,9 +44,9 @@ class MedisApp extends StatelessWidget {
             icon: const Icon(Icons.add),
           );
         }),
-        body: const Padding(
-          padding: EdgeInsets.all(8),
-          child: MainPage(),
+        body: Padding(
+          padding: const EdgeInsets.all(8).copyWith(top: 0),
+          child: const MainPage(),
         ),
       ),
     );
